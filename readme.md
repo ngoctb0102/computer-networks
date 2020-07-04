@@ -25,7 +25,7 @@
   + Viết file cấu hình `/ect/sysconfig/network-scripts/ifcfg-eth4` với nội dung:
     ```sh
     DEVICE=eth4
-    BOOTPROTO=dhcp
+    BOOTPROTO=static
     ONBOOT=yes
     IPADDR=192.168.1.20
     NETMASK=255.255.255.0
