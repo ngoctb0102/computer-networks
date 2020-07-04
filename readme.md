@@ -16,7 +16,7 @@
     > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
     > iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
     ```
- + Sử dụng file.sh với nội dung như trên để tự động cấu hình R1 thành router mỗi lần mở
+  + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
  
 - Cài đặt và cấu hình máy trạm A:
   + Clone A từ R1
@@ -58,9 +58,8 @@
       ```sh
       > sysctl -w net.ipv4.ip_forward=1
       > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
-      > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
       ```
-    + Sử dụng file.sh với nội dung như trên để tự động cấu hình R2 thành router mỗi lần mở
+    + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
     ![](imgs/R2_mac.png)
   + R3:
     + Adapter 1: Internal Network, name: LAN02, MAC: 08002748F000 ứng với eth3 của R2
@@ -71,42 +70,46 @@
       > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
       > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
       ```
-    + Sử dụng file.sh với nội dung như trên để tự động cấu hình R3 thành router mỗi lần mở
+    + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
     ![](imgs/R3_mac.png)
 - Clone B, X từ A.
+  + B: Viết file cấu hình `/ect/sysconfig/network-scripts/ifcfg-eth5` với nội dung:
+    ```sh
+    DEVICE=eth5
+    BOOTPROTO=static
+    ONBOOT=yes
+    IPADDR=192.168.1.21
+    NETMASK=255.255.255.0
+    GATEWAY=192.168.1.1
+    ```
+  + X: Viết file cấu hình `/ect/sysconfig/network-scripts/ifcfg-eth5` với nội dung:
+    ```sh
+    DEVICE=eth5
+    BOOTPROTO=static
+    ONBOOT=yes
+    IPADDR=192.168.3.20
+    NETMASK=255.255.255.0
+    GATEWAY=192.168.3.1
+    ```
 - Cấu hình mạng giống với sơ đồ:
   ![](imgs/sdm.png)
 
 - Cấu hình bảng router:
   + R1:
     ```sh
-    > route add -net 192.168.2.0/24 gw 192.168.1.2
-    > route add -net 192.168.3.0/24 gw 192.168.1.2
+    > echo '192.168.2.0/24 via 192.168.1.2' > /etc/sysconfig/network-scripts/route-eth2
+    > echo '192.168.3.0/24 via 192.168.1.2' >> /etc/sysconfig/network-scripts/route-eth2
     ```
-    ![](imgs/R1_route.png)
   + R2:
     ```sh
-    > route add -net 192.168.3.0/24 gw 192.168.2.2
+    > echo 'default via 192.168.1.1' > /etc/sysconfig/network-scripts/route-eth3
+    > echo '192.168.3.0/24 via 192.168.2.2' > /etc/sysconfig/network-scripts/route-eth4
     ```
-    ![](imgs/R2_route.png)
   + R3:
     ```sh
-    > route add -net 192.168.1.0/24 gw 192.168.2.1
+    > echo 'default via 192.168.2.1' > /etc/sysconfig/network-scripts/route-eth3
+    > echo '192.168.1.0/24 via 192.168.2.1' >> /etc/sysconfig/network-scripts/route-eth3
     ```
-    ![](imgs/R3_route.png)
-
-- Cấu hình default gateway ra Internet:
-  + R2:
-    ```sh
-    > route default gw 192.168.1.1
-    ```
-    ![](imgs/R2_gw.png)
-  + R3:
-    ```sh
-    > route default gw 192.168.2.1
-    ```
-    ![](imgs/R3_gw.png)
-
 - Route tables:
   + R1:
   ![](imgs/R1_rtb.png)
@@ -116,5 +119,48 @@
   ![](imgs/R3_rtb.png)
 
 ## 2. ping giữa hai trạm xa nhất
+- ping từ X đến B:
+  + Tại máy X:
+    ```sh
+    > ping -c5 192.168.1.21
+    ```
+    ![](imgs/X_B_ping.png)
+  + Log tại R2:
+    ![](imgs/R2_X_B_ping.png)
+  + Log tại R3:
+    ![](imgs/R3_X_B_ping.png)
 
+- ping từ A đến X khi R2 với kịch bản "destination unreachable"
+  + Xóa route của R2
+    ```sh
+    > route del -net 192.168.3.0/24 gw 192.168.2.2
+    ```
+  + Tại máy A:
+    ```sh
+    > ping -c5 192.168.3.20
+    ```
+    ![](imgs/A_X_ping_del.png)
+  + Log tại R1:
+    ![](imgs/R1_A_X_ping_del.png)
+  + Log tại R2:
+    ![](imgs/R2_A_X_ping_del.png)
+- ping từ A đến X với kịch bạn "time out"
 ## 3. tracepath giữa hai trạm xa nhất
+- Bật công cụ iptables trên R1, R2 & R3:
+  ```sh
+  > service iptables start
+  > service iptables status
+  > iptables -t mangle -A FORWARD -j LOG
+  > tail -f /var/log/message | grep ICMP
+  ```
+- tracepath từ máy A đến máy X:
+  + Tại máy A:
+    ```sh
+    > tracepath 192.168.3.20
+    ```
+    ![](imgs/A_X.png)
+  + Log tại R2:
+    ![](imgs/R2_A_X.png)
+  + Log tại R3:
+    ![](imgs/R3_A_X.png)
+- Phân tích các gói của lệnh ICMP
