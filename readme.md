@@ -51,9 +51,69 @@
     ![](imgs/A_ping.png)
 
 - Clone R2, R3 từ R1.
+  + R2:
+    + Adapter 1: Internal Network, name: LAN01, MAC: 08002748E000 ứng với eth3 của R2
+    + Adapter 2: Internal Network, name: LAN02, MAC: 0800277C6305 ứng với eth4 của R2
+    + Thiết lập R2 thành router:
+      ```sh
+      > sysctl -w net.ipv4.ip_forward=1
+      > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
+      > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
+      ```
+    + Sử dụng file.sh với nội dung như trên để tự động cấu hình R2 thành router mỗi lần mở
+    ![](imgs/R2_mac.png)
+  + R3:
+    + Adapter 1: Internal Network, name: LAN02, MAC: 08002748F000 ứng với eth3 của R2
+    + Adapter 2: Internal Network, name: LAN03, MAC: 0800277BCAFE ứng với eth4 của R2
+    + Thiết lập R3 thành router:
+      ```sh
+      > sysctl -w net.ipv4.ip_forward=1
+      > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
+      > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
+      ```
+    + Sử dụng file.sh với nội dung như trên để tự động cấu hình R3 thành router mỗi lần mở
+    ![](imgs/R3_mac.png)
 - Clone B, X từ A.
-* Cấu hình mạng giống với sơ đồ:
+- Cấu hình mạng giống với sơ đồ:
   ![](imgs/sdm.png)
+
+- Cấu hình bảng router:
+  + R1:
+    ```sh
+    > route add -net 192.168.2.0/24 gw 192.168.1.2
+    > route add -net 192.168.3.0/24 gw 192.168.1.2
+    ```
+    ![](imgs/R1_route.png)
+  + R2:
+    ```sh
+    > route add -net 192.168.3.0/24 gw 192.168.2.2
+    ```
+    ![](imgs/R2_route.png)
+  + R3:
+    ```sh
+    > route add -net 192.168.1.0/24 gw 192.168.2.1
+    ```
+    ![](imgs/R3_route.png)
+
+- Cấu hình default gateway ra Internet:
+  + R2:
+    ```sh
+    > route default gw 192.168.1.1
+    ```
+    ![](imgs/R2_gw.png)
+  + R3:
+    ```sh
+    > route default gw 192.168.2.1
+    ```
+    ![](imgs/R3_gw.png)
+
+- Route tables:
+  + R1:
+  ![](imgs/R1_rtb.png)
+  + R2:
+  ![](imgs/R2_rtb.png)
+  + R3:
+  ![](imgs/R3_rtb.png)
 
 ## 2. ping giữa hai trạm xa nhất
 
