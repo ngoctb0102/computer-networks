@@ -60,7 +60,7 @@ v
       > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
       ```
     + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
-    ![](imgs/R2_mac.png)
+      ![](imgs/R2_mac.png)
   + R3:
     + Adapter 1: Internal Network, name: LAN02, MAC: 08002748F000 ứng với eth3 của R2
     + Adapter 2: Internal Network, name: LAN03, MAC: 0800277BCAFE ứng với eth4 của R2
@@ -71,7 +71,7 @@ v
       > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
       ```
     + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
-    ![](imgs/R3_mac.png)
+      ![](imgs/R3_mac.png)
 - Clone B, X từ A.
   + B: Viết file cấu hình `/ect/sysconfig/network-scripts/ifcfg-eth5` với nội dung:
     ```sh
@@ -112,11 +112,11 @@ v
     ```
 - Route tables:
   + R1:
-  ![](imgs/R1_rtb.png)
+    ![](imgs/R1_rtb.png)
   + R2:
-  ![](imgs/R2_rtb.png)
+    ![](imgs/R2_rtb.png)
   + R3:
-  ![](imgs/R3_rtb.png)
+    ![](imgs/R3_rtb.png)
 
 ## 2. ping giữa hai trạm xa nhất
 - ping từ X đến B:
@@ -144,7 +144,16 @@ v
     ![](imgs/R1_A_X_ping_del.png)
   + Log tại R2:
     ![](imgs/R2_A_X_ping_del.png)
-- ping từ A đến X với kịch bạn "time out"
+- ping từ A đến X với kịch bản "time out"
+  + Xóa route của R3
+    ```sh
+    > route del -net 192.168.1.0/24 gw 192.168.2.1
+    ```
+    ![](imgs/R3_route_del.png)
+  + ping từ A đến X:
+    ![](imgs/A_X_ping_del_2.png)
+  + Log tại R2:
+    ![](imgs/R2_A_X_ping_del_2.png)
 ## 3. tracepath giữa hai trạm xa nhất
 - Bật công cụ iptables trên R1, R2 & R3:
   ```sh
@@ -159,8 +168,20 @@ v
     > tracepath 192.168.3.20
     ```
     ![](imgs/A_X.png)
+  + Log tại R1:
+    ![](imgs/R1_A_X.png)
   + Log tại R2:
     ![](imgs/R2_A_X.png)
   + Log tại R3:
     ![](imgs/R3_A_X.png)
 - Phân tích các gói của lệnh ICMP
+  + Path từ A đến X xuất hiện đúng như cấu hình liên mạng.
+  + Tại R1:
+    + Các gói tin UDP đầu tiên được gửi qua gửi lại giữa A và 1.1.1.1 để thực hiện bắt tay ba bước.
+    + R1 bắt đầu gửi gói tin UDP từ A đến X.
+  + Tại R2:
+    + Các gói tin UDP của A qua R2 đến X.
+    + Đồng thời nhận lại các gói tin ICMP từ X về A.
+  + Tại R3:
+    + Chỉ có duy nhất một gói UDP được gửi từ A đến X.
+    + Nhận lại duy nhất một gói ICMP từ X gửi về A.
