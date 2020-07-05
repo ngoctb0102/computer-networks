@@ -168,8 +168,20 @@
     > tracepath 192.168.3.20
     ```
     ![](imgs/A_X.png)
+  + Log tại R1:
+    ![](imgs/R1_A_X.png)
   + Log tại R2:
     ![](imgs/R2_A_X.png)
   + Log tại R3:
     ![](imgs/R3_A_X.png)
 - Phân tích các gói của lệnh ICMP
+  + Path từ A đến X xuất hiện đúng như cấu hình liên mạng.
+  + Tại R1:
+    + Các gói tin UDP đầu tiên được gửi qua gửi lại giữa A và 1.1.1.1 để thực hiện bắt tay ba bước.
+    + R1 bắt đầu gửi gói tin UDP từ A đến X.
+  + Tại R2:
+    + Các gói tin UDP của A qua R2 đến X.
+    + Đồng thời nhận lại các gói tin ICMP từ X về A.
+  + Tại R3:
+    + Chỉ có duy nhất một gói UDP được gửi từ A đến X.
+    + Nhận lại duy nhất một gói ICMP từ X gửi về A.
