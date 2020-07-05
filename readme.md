@@ -60,7 +60,7 @@
       > iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
       ```
     + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
-    ![](imgs/R2_mac.png)
+      ![](imgs/R2_mac.png)
   + R3:
     + Adapter 1: Internal Network, name: LAN02, MAC: 08002748F000 ứng với eth3 của R2
     + Adapter 2: Internal Network, name: LAN03, MAC: 0800277BCAFE ứng với eth4 của R2
@@ -71,7 +71,7 @@
       > iptables -t nat -A POSTROUTING -o eth3 -j MASQUERADE
       ```
     + Sửa `net.ipv4.ip_forward = 1` trong file `/etc/sysctl.conf` để không phải cấu hình lại
-    ![](imgs/R3_mac.png)
+      ![](imgs/R3_mac.png)
 - Clone B, X từ A.
   + B: Viết file cấu hình `/ect/sysconfig/network-scripts/ifcfg-eth5` với nội dung:
     ```sh
@@ -112,11 +112,11 @@
     ```
 - Route tables:
   + R1:
-  ![](imgs/R1_rtb.png)
+    ![](imgs/R1_rtb.png)
   + R2:
-  ![](imgs/R2_rtb.png)
+    ![](imgs/R2_rtb.png)
   + R3:
-  ![](imgs/R3_rtb.png)
+    ![](imgs/R3_rtb.png)
 
 ## 2. ping giữa hai trạm xa nhất
 - ping từ X đến B:
@@ -144,7 +144,7 @@
     ![](imgs/R1_A_X_ping_del.png)
   + Log tại R2:
     ![](imgs/R2_A_X_ping_del.png)
-- ping từ A đến X với kịch bạn "time out"
+- ping từ A đến X với kịch bản "time out"
 ## 3. tracepath giữa hai trạm xa nhất
 - Bật công cụ iptables trên R1, R2 & R3:
   ```sh
