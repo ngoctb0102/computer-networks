@@ -1,5 +1,5 @@
 # Báo cáo bài tập lớn Mạng Máy Tính
-
+v
 
 ## 1. Cài đặt môi trường
 - Tải và cài đặt Virtual Box. (tải và cài thành công, không có lỗi)
