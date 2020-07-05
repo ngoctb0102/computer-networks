@@ -145,6 +145,15 @@
   + Log tại R2:
     ![](imgs/R2_A_X_ping_del.png)
 - ping từ A đến X với kịch bản "time out"
+  + Xóa route của R3
+    ```sh
+    > route del -net 192.168.1.0/24 gw 192.168.2.1
+    ```
+    ![](imgs/R3_route_del.png)
+  + ping từ A đến X:
+    ![](imgs/A_X_ping_del_2.png)
+  + Log tại R2:
+    ![](imgs/R2_A_X_ping_del_2.png)
 ## 3. tracepath giữa hai trạm xa nhất
 - Bật công cụ iptables trên R1, R2 & R3:
   ```sh
